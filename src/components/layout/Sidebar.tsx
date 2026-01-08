@@ -54,7 +54,8 @@ export function Sidebar({ isOpen, onToggle, width = 288 }: SidebarProps) {
     setActiveConversation,
     createConversation,
     deleteConversation,
-    toggleStar
+    toggleStar,
+    updateConversationTitle
   } = useChat();
   const { profile, getDisplayName, getInitials } = useUserProfile();
 
@@ -131,6 +132,7 @@ export function Sidebar({ isOpen, onToggle, width = 288 }: SidebarProps) {
                     onCreate={createConversation}
                     onDelete={deleteConversation}
                     onToggleStar={toggleStar}
+                    onUpdateTitle={updateConversationTitle}
                   />
                 </div>
 
