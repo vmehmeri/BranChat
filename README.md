@@ -7,14 +7,14 @@ A powerful, privacy-focused AI chat application with non-linear conversation bra
 
 ![](./assets/branchat-preview.png)
 
+
 ## Features
 
 - **🌳 Non-Linear Conversations** - Branch conversations at any point to explore different directions without polluting your main thread
-- **🤖 Multi-Model Support** - Access models from OpenAI, Anthropic, Google, and xAI in one interface
+- **🤖 Multi-Model Support** - Access best-of-breed models from OpenAI, Anthropic, Google, and xAI in one interface
 - **🔄 Model Switching** - Switch models on the fly or use different models for different branches
-- **🔒 Privacy First** - API-based usage means your data is never used to train models; all conversations stored locally
+- **🔒 Privacy First** - API-based usage means your data is never used to train models; all conversations stored locally only
 - **📎 Rich Attachments** - Support for images and documents (PDF, Markdown, Plain Text)
-- **💾 Persistent Storage** - All conversations saved locally using SQLite with automatic saving
 - **🎨 Modern UI** - Beautiful, responsive interface with dark/light mode and intuitive branch visualization
 
 ## Why BranChat?
@@ -25,6 +25,7 @@ Unlike consumer chat applications like ChatGPT, Claude.ai, or Gemini, BranChat u
 - **No training data**: API providers contractually commit to not using your API data to train their models. This is a key distinction from free consumer tiers where your conversations may be used for model improvement.
 - **Your data, your control**: All conversations are stored locally on your device. No cloud sync, no data collection, no third-party servers.
 - **Direct API access**: Your API keys connect directly to the provider's API. No intermediate services that could log or analyze your conversations.
+- **Fully auditable code**: This project is fully open-source and the code is fully auditable. 
 
 ### Greater Options at Lower Cost
 Instead of maintaining multiple $20/month subscriptions to different AI services, BranChat lets you:
@@ -32,7 +33,6 @@ Instead of maintaining multiple $20/month subscriptions to different AI services
 - **Pay-as-you-go**: Use API pricing which is typically more cost-effective for moderate usage
 - **Best model for each task**: Choose the optimal model for each conversation or branch without being locked into a single provider
 - **No subscription lock-in**: Use exactly what you need, when you need it
-- **Compare models easily**: Test different models on the same question to find the best fit
 
 ### Non-Linear Conversations
 Traditional chat apps force you into a linear conversation flow. BranChat's unique branching system allows you to:
@@ -56,6 +56,10 @@ BranChat is built by the community, for the community:
 - **Customization**: Modify and extend the app to fit your needs
 - **Community contributions**: Help shape the future of the project
 - **No vendor lock-in**: You're not dependent on a proprietary service
+
+## Demo (Video)
+
+[![BranChat Demo](https://img.youtube.com/vi/Ivju9mj6y8w/maxresdefault.jpg)](https://youtu.be/Ivju9mj6y8w)
 
 ## Installation
 
