@@ -5,8 +5,8 @@ A powerful, privacy-focused AI chat application with non-linear conversation bra
 ![BranChat](https://img.shields.io/badge/BranChat-Open%20Source-blue)
 ![License](https://img.shields.io/badge/License-Non--Commercial-green)
 
-![](./assets/branchat-preview.png)
 
+![BranChat branching demo](./assets/branchat-demo.gif)
 
 ## Features
 
@@ -57,9 +57,6 @@ BranChat is built by the community, for the community:
 - **Community contributions**: Help shape the future of the project
 - **No vendor lock-in**: You're not dependent on a proprietary service
 
-## Demo (Video)
-
-[![BranChat Demo](https://img.youtube.com/vi/Ivju9mj6y8w/maxresdefault.jpg)](https://youtu.be/Ivju9mj6y8w)
 
 ## Installation
 
