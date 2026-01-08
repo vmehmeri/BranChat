@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Plus, Trash2, MoreHorizontal, Star } from 'lucide-react';
 import { Conversation } from '@/types/chat';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -18,6 +19,7 @@ interface ConversationListProps {
   onCreate: () => void;
   onDelete: (id: string) => void;
   onToggleStar: (id: string) => void;
+  onUpdateTitle: (id: string, title: string) => void;
 }
 
 export function ConversationList({
@@ -26,10 +28,51 @@ export function ConversationList({
   onSelect,
   onCreate,
   onDelete,
-  onToggleStar
+  onToggleStar,
+  onUpdateTitle
 }: ConversationListProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const starredConversations = conversations.filter(c => c.starred);
   const unstarredConversations = conversations.filter(c => !c.starred);
+
+  // Auto-focus input when entering edit mode
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
+
+  const startEditing = (conversation: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(conversation.id);
+    setEditValue(conversation.title);
+  };
+
+  const saveEdit = () => {
+    if (editingId && editValue.trim()) {
+      onUpdateTitle(editingId, editValue.trim());
+    }
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveEdit();
+    } else if (e.key === 'Escape') {
+      cancelEdit();
+    }
+  };
 
   const renderConversationItem = (conversation: Conversation) => (
     <div
@@ -43,9 +86,24 @@ export function ConversationList({
       onClick={() => onSelect(conversation.id)}
     >
       <div className="flex-1 min-w-0">
-        <p className="truncate font-medium">
-          {conversation.title}
-        </p>
+        {editingId === conversation.id ? (
+          <Input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={saveEdit}
+            onClick={(e) => e.stopPropagation()}
+            className="h-6 px-1 py-0 text-sm font-medium"
+          />
+        ) : (
+          <p
+            className="truncate font-medium cursor-text hover:text-primary"
+            onClick={(e) => startEditing(conversation, e)}
+          >
+            {conversation.title}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           {formatDistanceToNow(conversation.updatedAt, { addSuffix: true })}
         </p>

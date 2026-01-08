@@ -32,6 +32,7 @@ interface ChatContextType {
   setBranchModel: (branchId: string, model: Model) => void;
   clearAllConversations: () => void;
   toggleStar: (id: string) => void;
+  updateConversationTitle: (id: string, title: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -530,6 +531,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     markModified(id);
   }, [markModified]);
 
+  const updateConversationTitle = useCallback((id: string, title: string) => {
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === id) {
+        return { ...conv, title, updatedAt: new Date() };
+      }
+      return conv;
+    }));
+
+    markModified(id);
+  }, [markModified]);
+
   return (
     <ChatContext.Provider value={{
       conversations,
@@ -556,6 +568,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setBranchModel,
       clearAllConversations,
       toggleStar,
+      updateConversationTitle,
     }}>
       {children}
     </ChatContext.Provider>
