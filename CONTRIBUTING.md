@@ -33,13 +33,13 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 2. **Clone your fork**:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/branch-chat.git
-   cd branch-chat
+   git clone https://github.com/YOUR_USERNAME/BranChat.git
+   cd BranChat
    ```
 
 3. **Add the upstream remote**:
    ```bash
-   git remote add upstream https://github.com/vmehmeri/branch-chat.git
+   git remote add upstream https://github.com/vmehmeri/BranChat.git
    ```
 
 4. **Install dependencies**:
@@ -270,7 +270,7 @@ When requesting a feature:
 ## Questions?
 
 - Check the [README](README.md) for general information
-- Open a [Discussion](https://github.com/vmehmeri/branch-chat/discussions) for questions
+- Open a [Discussion](https://github.com/vmehmeri/BranChat/discussions) for questions
 - Join our community discussions
 
 ---

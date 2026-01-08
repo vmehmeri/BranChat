@@ -19,7 +19,7 @@ We take the security of BranChat seriously. If you discover a security vulnerabi
 Instead, please report them via one of the following methods:
 
 1. **GitHub Security Advisories** (Preferred)
-   - Navigate to the [Security tab](https://github.com/vmehmeri/branch-chat/security/advisories)
+   - Navigate to the [Security tab](https://github.com/vmehmeri/BranChat/security/advisories)
    - Click "Report a vulnerability"
    - Fill out the form with details
 
