@@ -100,21 +100,24 @@ npm run build
 npm run preview
 ```
 
-### Mac App (Electron)
+### Mac App
 
-1. Build the Electron app:
+1. Download the latest `.dmg` from the [Releases](https://github.com/vmehmeri/BranChat/releases) page
+
+2. Open the `.dmg` and drag BranChat to your Applications folder
+
+3. After launching, go to **Settings** and add your API keys. Keys are stored securely in your macOS Keychain.
+
+#### Building from Source
+
+If you prefer to build the Mac app yourself:
+
 ```bash
 npm run build:electron
-```
-
-2. Build the Mac installer:
-```bash
 npm run build:mac
 ```
 
-The installer will be created in the `dist` directory.
-
-3. After installing, go to **Settings** and add your API keys. Keys are stored securely in your macOS Keychain.
+The installer will be created in the `release` directory.
 
 ## Usage
 
