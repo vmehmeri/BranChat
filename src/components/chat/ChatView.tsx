@@ -177,27 +177,39 @@ export function ChatView() {
     return branchWidths[branchId] ?? BRANCH_DEFAULT_WIDTH;
   }, [branchWidths]);
 
-  // Handle branch resize with smooth updates
+  // Cache viewport width to avoid repeated DOM reads during drag
+  const viewportWidthRef = useRef(window.innerWidth);
+  
+  // Update viewport width cache on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      viewportWidthRef.current = window.innerWidth;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle branch resize with ultra-smooth updates
   const handleBranchResize = useCallback((branchId: string, delta: number) => {
-    // Use requestAnimationFrame for smoother updates
-    requestAnimationFrame(() => {
-      setBranchWidths(prev => {
-        const currentWidth = prev[branchId] ?? BRANCH_DEFAULT_WIDTH;
-        const newWidth = Math.min(BRANCH_MAX_WIDTH, Math.max(BRANCH_MIN_WIDTH, currentWidth + delta));
-        
-        // Only update if width actually changed
-        if (Math.abs(newWidth - currentWidth) < 1) {
-          return prev;
-        }
-        
-        // Calculate total branch width to check if we should collapse main chat
-        const otherBranches = Object.keys(prev).filter(id => id !== branchId);
-        const otherBranchesWidth = otherBranches.reduce((sum, id) => sum + (prev[id] ?? BRANCH_DEFAULT_WIDTH), 0);
+    setBranchWidths(prev => {
+      const currentWidth = prev[branchId] ?? BRANCH_DEFAULT_WIDTH;
+      const newWidth = Math.min(BRANCH_MAX_WIDTH, Math.max(BRANCH_MIN_WIDTH, currentWidth + delta));
+      
+      // Only update if width actually changed significantly
+      if (Math.abs(newWidth - currentWidth) < 0.5) {
+        return prev;
+      }
+      
+      // Simple, fast update - defer collapse logic to next tick
+      const newState = { ...prev, [branchId]: newWidth };
+      
+      // Check collapse logic asynchronously to not block drag
+      setTimeout(() => {
+        const otherBranches = Object.keys(newState).filter(id => id !== branchId);
+        const otherBranchesWidth = otherBranches.reduce((sum, id) => sum + (newState[id] ?? BRANCH_DEFAULT_WIDTH), 0);
         const totalBranchWidth = otherBranchesWidth + newWidth;
-        
-        // Cache viewport width to avoid repeated DOM reads
-        const viewportWidth = window.innerWidth;
-        const availableMainWidth = viewportWidth - totalBranchWidth;
+        const availableMainWidth = viewportWidthRef.current - totalBranchWidth;
         
         // Auto-collapse main chat if it gets too small
         if (availableMainWidth < MAIN_CHAT_COLLAPSE_THRESHOLD && !isMainChatCollapsed) {
@@ -205,9 +217,9 @@ export function ChatView() {
         } else if (availableMainWidth >= MAIN_CHAT_MIN_WIDTH && isMainChatCollapsed) {
           setIsMainChatCollapsed(false);
         }
-        
-        return { ...prev, [branchId]: newWidth };
-      });
+      }, 0);
+      
+      return newState;
     });
   }, [isMainChatCollapsed]);
 

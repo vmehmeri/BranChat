@@ -95,13 +95,14 @@ export function BranchPanel({
 
       <div
         className={cn(
-          "flex flex-col h-full border-l transition-all duration-200 ease-out",
-          isCollapsed && "w-12"
+          "flex flex-col h-full border-l",
+          isCollapsed ? "w-12 transition-all duration-200 ease-out" : ""
         )}
         style={{
           borderColor: branch.color,
           width: isCollapsed ? undefined : width,
           minWidth: isCollapsed ? undefined : 250,
+          transition: isCollapsed ? undefined : 'none',
         }}
       >
       {/* Header */}
