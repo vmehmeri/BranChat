@@ -532,7 +532,7 @@ export function ChatView() {
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           />
         </div>
-        <div className="flex-1 flex items-center justify-center p-8 -mt-12">
+        <div className="flex-1 flex items-center justify-center px-8 py-12">
           <div className="text-center max-w-md">
             <h1 className="text-2xl font-bold mb-2">Welcome to BranChat</h1>
             <p className="text-muted-foreground mb-6">
@@ -544,7 +544,7 @@ export function ChatView() {
             </div>
           </div>
         </div>
-        <div className="p-4 max-w-3xl mx-auto w-full">
+        <div className="px-4 py-4 max-w-3xl mx-auto w-full">
           <ChatInput
             onSend={handleSend}
             webSearchEnabled={webSearchEnabled}
@@ -589,20 +589,22 @@ export function ChatView() {
       ) : (
         <div className="flex-1 flex flex-col min-w-0">
         {/* Header - draggable with no-drag zones for interactive elements */}
-        <div
-          className="flex items-center justify-between px-4 py-1.5 border-b"
-          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
-        >
-          {/* Left spacer for hamburger menu / traffic lights - NOT draggable */}
+        {!isElectron() && (
           <div
-            className={`shrink-0 lg:hidden ${isElectron() ? 'w-28' : 'w-14'}`}
-            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-          />
-          {/* Title */}
-          <h2 className="font-semibold truncate flex-1 lg:flex-none" style={{ paddingLeft: '0.5rem' }}>
-            {activeConversation.title}
-          </h2>
-        </div>
+            className="flex items-center justify-between px-4 py-1.5 border-b"
+            style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+          >
+            {/* Left spacer for hamburger menu / traffic lights - NOT draggable */}
+            <div
+              className={`shrink-0 lg:hidden ${isElectron() ? 'w-28' : 'w-14'}`}
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+            />
+            {/* Title */}
+            <h2 className="font-semibold truncate flex-1 lg:flex-none" style={{ paddingLeft: '0.5rem' }}>
+              {activeConversation.title}
+            </h2>
+          </div>
+        )}
 
         {/* Messages */}
         <div
@@ -649,7 +651,7 @@ export function ChatView() {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t">
+        <div className="px-4 py-4 border-t">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-2 mb-2">
               <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
