@@ -12,7 +12,7 @@ import { Message, Attachment } from '@/types/chat';
 import { isElectron } from '@/services/keychain';
 
 const BRANCH_MIN_WIDTH = 250;
-const BRANCH_MAX_WIDTH = 600;
+const BRANCH_MAX_WIDTH = 1200;
 const BRANCH_DEFAULT_WIDTH = 400;
 
 // Throttle interval for streaming updates (ms)
