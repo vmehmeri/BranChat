@@ -78,7 +78,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Draggable region for Electron window (when not fullscreen) */}
         {isElectron() && !isFullscreen && (
           <div
-            className="h-6 w-full shrink-0"
+            className="h-6 w-full shrink-0 bg-muted border-b"
             style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
           />
         )}
