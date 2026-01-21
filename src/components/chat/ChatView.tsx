@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { useChat } from '@/contexts/ChatContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useApiKeys } from '@/contexts/ApiKeyContext';
@@ -6,6 +7,7 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { BranchPanel } from './BranchPanel';
 import { ModelSelector } from './ModelSelector';
+import { Button } from '@/components/ui/button';
 import { streamChatMessage, getSupportedMimeTypes, supportsAttachments } from '@/services/llm';
 import { useToast } from '@/hooks/use-toast';
 import { Message, Attachment } from '@/types/chat';
@@ -14,6 +16,8 @@ import { isElectron } from '@/services/keychain';
 const BRANCH_MIN_WIDTH = 250;
 const BRANCH_MAX_WIDTH = 1200;
 const BRANCH_DEFAULT_WIDTH = 400;
+const MAIN_CHAT_MIN_WIDTH = 300;
+const MAIN_CHAT_COLLAPSE_THRESHOLD = 350;
 
 // Throttle interval for streaming updates (ms)
 const STREAM_UPDATE_THROTTLE_MS = 50;
@@ -52,6 +56,7 @@ export function ChatView() {
   // Derive isLoading based on whether the active conversation is the one loading
   const isLoading = loadingConversationId === activeConversation?.id;
   const [branchWidths, setBranchWidths] = useState<Record<string, number>>({});
+  const [isMainChatCollapsed, setIsMainChatCollapsed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
@@ -172,12 +177,61 @@ export function ChatView() {
     return branchWidths[branchId] ?? BRANCH_DEFAULT_WIDTH;
   }, [branchWidths]);
 
-  // Handle branch resize
+  // Handle branch resize with smooth updates
   const handleBranchResize = useCallback((branchId: string, delta: number) => {
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      setBranchWidths(prev => {
+        const currentWidth = prev[branchId] ?? BRANCH_DEFAULT_WIDTH;
+        const newWidth = Math.min(BRANCH_MAX_WIDTH, Math.max(BRANCH_MIN_WIDTH, currentWidth + delta));
+        
+        // Only update if width actually changed
+        if (Math.abs(newWidth - currentWidth) < 1) {
+          return prev;
+        }
+        
+        // Calculate total branch width to check if we should collapse main chat
+        const otherBranches = Object.keys(prev).filter(id => id !== branchId);
+        const otherBranchesWidth = otherBranches.reduce((sum, id) => sum + (prev[id] ?? BRANCH_DEFAULT_WIDTH), 0);
+        const totalBranchWidth = otherBranchesWidth + newWidth;
+        
+        // Cache viewport width to avoid repeated DOM reads
+        const viewportWidth = window.innerWidth;
+        const availableMainWidth = viewportWidth - totalBranchWidth;
+        
+        // Auto-collapse main chat if it gets too small
+        if (availableMainWidth < MAIN_CHAT_COLLAPSE_THRESHOLD && !isMainChatCollapsed) {
+          setIsMainChatCollapsed(true);
+        } else if (availableMainWidth >= MAIN_CHAT_MIN_WIDTH && isMainChatCollapsed) {
+          setIsMainChatCollapsed(false);
+        }
+        
+        return { ...prev, [branchId]: newWidth };
+      });
+    });
+  }, [isMainChatCollapsed]);
+
+  // Handle expanding main chat
+  const handleExpandMainChat = useCallback(() => {
+    setIsMainChatCollapsed(false);
+    // Adjust branch widths to make room for main chat
     setBranchWidths(prev => {
-      const currentWidth = prev[branchId] ?? BRANCH_DEFAULT_WIDTH;
-      const newWidth = Math.min(BRANCH_MAX_WIDTH, Math.max(BRANCH_MIN_WIDTH, currentWidth + delta));
-      return { ...prev, [branchId]: newWidth };
+      const viewportWidth = window.innerWidth;
+      const targetMainWidth = 600; // Give main chat a reasonable width
+      const availableForBranches = viewportWidth - targetMainWidth;
+      const totalCurrentWidth = Object.values(prev).reduce((sum, width) => sum + width, 0);
+      
+      if (totalCurrentWidth > availableForBranches) {
+        // Scale down all branches proportionally
+        const scale = availableForBranches / totalCurrentWidth;
+        const newWidths: Record<string, number> = {};
+        Object.entries(prev).forEach(([id, width]) => {
+          newWidths[id] = Math.max(BRANCH_MIN_WIDTH, width * scale);
+        });
+        return newWidths;
+      }
+      
+      return prev;
     });
   }, []);
 
@@ -495,7 +549,33 @@ export function ChatView() {
   return (
     <div className="flex h-full">
       {/* Main conversation */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {isMainChatCollapsed ? (
+        <div className="w-12 border-r flex flex-col items-center py-4 bg-muted/30">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleExpandMainChat}
+            className="h-8 w-8"
+            title="Expand main chat"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 flex items-center justify-center">
+            <div 
+              className="text-xs text-muted-foreground"
+              style={{
+                writingMode: 'vertical-rl',
+                textOrientation: 'mixed',
+                maxHeight: '200px',
+                overflow: 'hidden'
+              }}
+            >
+              {activeConversation.title}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col min-w-0">
         {/* Header - draggable with no-drag zones for interactive elements */}
         <div
           className="flex items-center justify-between px-4 py-1.5 border-b"
@@ -574,6 +654,7 @@ export function ChatView() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Branch panels */}
       {activeBranches.map((branch) => (

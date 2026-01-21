@@ -95,7 +95,7 @@ export function BranchPanel({
 
       <div
         className={cn(
-          "flex flex-col h-full border-l transition-all duration-300",
+          "flex flex-col h-full border-l transition-all duration-200 ease-out",
           isCollapsed && "w-12"
         )}
         style={{
