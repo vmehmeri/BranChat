@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Plus, Trash2, MoreHorizontal, Star } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, MoreHorizontal, Star, Edit } from 'lucide-react';
 import { Conversation } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,8 +46,23 @@ export function ConversationList({
     }
   }, [editingId]);
 
-  const startEditing = (conversation: Conversation, e: React.MouseEvent) => {
-    e.stopPropagation();
+  // Handle click outside to cancel editing
+  useEffect(() => {
+    if (!editingId) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (inputRef.current && !inputRef.current.contains(target)) {
+        cancelEdit();
+      }
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [editingId]);
+
+  const startEditing = (conversation: Conversation, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setEditingId(conversation.id);
     setEditValue(conversation.title);
   };
@@ -92,15 +107,12 @@ export function ConversationList({
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            onBlur={saveEdit}
+            onBlur={cancelEdit}
             onClick={(e) => e.stopPropagation()}
             className="h-6 px-1 py-0 text-sm font-medium"
           />
         ) : (
-          <p
-            className="truncate font-medium cursor-text hover:text-primary"
-            onClick={(e) => startEditing(conversation, e)}
-          >
+          <p className="truncate font-medium">
             {conversation.title}
           </p>
         )}
@@ -141,6 +153,16 @@ export function ConversationList({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              startEditing(conversation, e);
+            }}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Title
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={(e) => {
