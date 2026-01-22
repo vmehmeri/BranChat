@@ -33,7 +33,7 @@ export class OpenAIProvider extends BaseLLMProvider {
     });
   }
 
-  async stream(request: ChatRequest, onChunk: StreamCallback): Promise<void> {
+  protected async streamWithRetry(request: ChatRequest, onChunk: StreamCallback): Promise<void> {
     const { messages, model, userBio, options } = request;
     const systemPrompt = buildSystemPrompt(userBio);
 

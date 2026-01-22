@@ -1,6 +1,6 @@
 import { ModelProvider } from '@/types/chat';
 import { LLMProvider, LLMProviderConfig, ChatRequest, StreamCallback, Citation } from './types';
-import { API_TIMEOUT_MS, DEFAULT_SUPPORTED_MIME_TYPES } from './utils';
+import { API_TIMEOUT_MS, DEFAULT_SUPPORTED_MIME_TYPES, withRetry, isRetryableError } from './utils';
 
 /**
  * Abstract base class for LLM providers.
@@ -24,9 +24,26 @@ export abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Stream a chat response. Must be implemented by each provider.
+   * Stream a chat response with retry logic.
+   * Wraps the actual stream implementation with exponential backoff retries.
    */
-  abstract stream(request: ChatRequest, onChunk: StreamCallback): Promise<void>;
+  async stream(request: ChatRequest, onChunk: StreamCallback): Promise<void> {
+    await withRetry(
+      () => this.streamWithRetry(request, onChunk),
+      {
+        maxAttempts: 3,
+        baseDelayMs: 1000,
+        maxDelayMs: 10000,
+        backoffMultiplier: 2,
+      }
+    );
+  }
+
+  /**
+   * Actual stream implementation. Must be implemented by each provider.
+   * This method will be called by the retry wrapper.
+   */
+  protected abstract streamWithRetry(request: ChatRequest, onChunk: StreamCallback): Promise<void>;
 
   /**
    * Formats citations as a markdown list for appending to responses.
@@ -50,14 +67,19 @@ export abstract class BaseLLMProvider implements LLMProvider {
 
   /**
    * Throws an error if no content was received from the provider.
+   * This error will be retryable by the retry logic.
    * @param hasContent - Whether any content was received
    * @param providerName - Display name of the provider for error message
    */
   protected assertHasContent(hasContent: boolean, providerName: string): void {
     if (!hasContent) {
-      throw new Error(
+      const error = new Error(
         `Empty response received from ${providerName}. Please try again.`
       );
+      // Mark this error as retryable by adding a custom property
+      (error as unknown as Record<string, unknown>).isRetryable = true;
+      (error as unknown as Record<string, unknown>).errorType = 'empty_response';
+      throw error;
     }
   }
 }

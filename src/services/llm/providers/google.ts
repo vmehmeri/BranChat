@@ -32,7 +32,7 @@ export class GoogleProvider extends BaseLLMProvider {
     });
   }
 
-  async stream(request: ChatRequest, onChunk: StreamCallback): Promise<void> {
+  protected async streamWithRetry(request: ChatRequest, onChunk: StreamCallback): Promise<void> {
     const { messages, model, userBio, options } = request;
     const contents = this.convertMessages(messages);
     const systemPrompt = buildSystemPrompt(userBio);
