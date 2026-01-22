@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, ChevronDown, ChevronUp, GitBranch, Trash2 } from 'lucide-react';
+import { X, ChevronDown, ChevronUp, GitBranch, Trash2, Copy } from 'lucide-react';
 import { Branch, Message, Model, Attachment } from '@/types/chat';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,7 @@ import { ModelSelector } from './ModelSelector';
 import { ResizableHandle } from '@/components/ui/resizable-handle';
 import { supportsAttachments } from '@/services/llm';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface BranchPanelProps {
   branch: Branch;
@@ -56,6 +57,7 @@ export function BranchPanel({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const prevMessageCountRef = useRef(branch.messages.length);
+  const { toast } = useToast();
 
   const rootMessageIndex = parentMessages.findIndex(m => m.id === branch.rootMessageId);
   const rootMessage = parentMessages[rootMessageIndex];
@@ -84,6 +86,31 @@ export function BranchPanel({
   // Handle resize - negative delta because dragging left should increase width
   const handleResize = (delta: number) => {
     onResize?.(-delta);
+  };
+
+  // Copy entire branch conversation history
+  const handleCopyConversation = async () => {
+    const allMessages = [...contextMessages, ...branch.messages];
+    const formattedConversation = allMessages
+      .map((message) => {
+        const role = message.role === 'user' ? 'User' : 'Assistant';
+        const timestamp = new Date(message.timestamp).toLocaleString();
+        return `[${timestamp}] ${role}:\n${message.content}${message.attachments && message.attachments.length > 0 ? '\n[Attachments: ' + message.attachments.map(a => a.name).join(', ') + ']' : ''}\n`;
+      })
+      .join('\n---\n\n');
+
+    try {
+      await navigator.clipboard.writeText(formattedConversation);
+      toast({
+        description: "Conversation history copied to clipboard",
+      });
+    } catch (err) {
+      console.error('Failed to copy conversation:', err);
+      toast({
+        description: "Failed to copy conversation",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -132,6 +159,15 @@ export function BranchPanel({
                 onClick={() => setIsCollapsed(true)}
               >
                 <ChevronDown className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleCopyConversation}
+                title="Copy conversation"
+              >
+                <Copy className="h-4 w-4" />
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
