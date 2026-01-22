@@ -214,10 +214,7 @@ export function ChatMessage({
           )}>
             {/* Attachments */}
             {message.attachments && message.attachments.length > 0 && (
-              <div className={cn(
-                "flex flex-wrap gap-2 mb-2",
-                message.role === 'user' ? "justify-end" : "justify-start"
-              )}>
+              <div className="flex flex-wrap gap-2 mb-2 justify-start">
                 {message.attachments.map((attachment) => (
                   attachment.type === 'image' ? (
                     <ImageAttachment
@@ -246,7 +243,7 @@ export function ChatMessage({
               message.role === 'assistant' ? (
                 <Markdown content={message.content} className="text-sm" />
               ) : (
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-left">
                   {message.content}
                 </p>
               )

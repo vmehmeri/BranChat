@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Settings, User, Menu, X, Shield, GitBranch } from 'lucide-react';
+import { Settings, User, Menu, X, Shield, GitBranch, SquarePen } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useChat } from '@/contexts/ChatContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
@@ -78,7 +78,7 @@ export function Sidebar({ isOpen, onToggle, width = 288 }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r transition-transform duration-300 lg:translate-x-0",
+          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
         style={{ width }}
@@ -86,36 +86,39 @@ export function Sidebar({ isOpen, onToggle, width = 288 }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Header - with extra top padding for macOS traffic lights in Electron (not in fullscreen) */}
           <div
-            className="flex items-center justify-between p-4"
+            className={cn(
+              "flex items-center gap-2 px-2 py-1",
+              isElectron() && isFullscreen ? "justify-between" : "justify-end"
+            )}
             style={{
               WebkitAppRegion: 'drag',
-              paddingTop: isElectron() && !isFullscreen ? '2.5rem' : undefined
+              paddingTop: isElectron() && !isFullscreen ? '1rem' : undefined
             } as React.CSSProperties}
           >
-            <Link
-              to="/"
-              className="flex items-center gap-2"
-              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-            >
-              <img
-                src={appIcon}
-                alt="BranChat"
-                className="h-8 w-8 rounded-lg dark:filter-none invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0"
-              />
-              <span className="font-bold text-lg">BranChat</span>
-            </Link>
+            {isElectron() && isFullscreen && (
+              <Link
+                to="/"
+                className="flex items-center gap-2"
+                style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+              >
+                <img
+                  src={appIcon}
+                  alt="BranChat"
+                  className="h-8 w-8 rounded-lg dark:filter-none invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0"
+                />
+                <span className="font-bold text-lg">BranChat</span>
+              </Link>
+            )}
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
-              onClick={onToggle}
+              onClick={createConversation}
+              className="h-8 w-8"
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
             >
-              <X className="h-5 w-5" />
+              <SquarePen className="h-5 w-5" />
             </Button>
           </div>
-
-          <Separator />
 
           {/* Conversations */}
           <div ref={containerRef} className="flex-1 overflow-hidden flex flex-col min-h-0">
@@ -217,7 +220,7 @@ export function Sidebar({ isOpen, onToggle, width = 288 }: SidebarProps) {
         variant="ghost"
         size="icon"
         className={cn(
-          "fixed z-50 lg:hidden",
+          "fixed z-50",
           isOpen && "hidden",
           isElectron() ? "left-20 top-2" : "left-4"
         )}

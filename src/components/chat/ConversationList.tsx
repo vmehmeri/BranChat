@@ -41,8 +41,11 @@ export function ConversationList({
   // Auto-focus input when entering edit mode
   useEffect(() => {
     if (editingId && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+      // Use setTimeout to ensure dropdown has closed and input is rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 50);
     }
   }, [editingId]);
 
@@ -57,8 +60,15 @@ export function ConversationList({
       }
     };
 
-    document.addEventListener('mousedown', handleMouseDown);
-    return () => document.removeEventListener('mousedown', handleMouseDown);
+    // Delay adding the listener to avoid catching the click that started edit mode
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleMouseDown);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleMouseDown);
+    };
   }, [editingId]);
 
   const startEditing = (conversation: Conversation, e?: React.MouseEvent) => {
@@ -107,7 +117,6 @@ export function ConversationList({
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            onBlur={cancelEdit}
             onClick={(e) => e.stopPropagation()}
             className="h-6 px-1 py-0 text-sm font-medium"
           />
