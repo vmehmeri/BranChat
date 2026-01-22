@@ -212,15 +212,34 @@ export function ChatInput({
         />
 
         <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "h-8 w-8",
+                      supportsFileAttachments
+                        ? "text-muted-foreground hover:text-foreground"
+                        : "text-muted-foreground/50 cursor-not-allowed"
+                    )}
+                    onClick={() => supportsFileAttachments && fileInputRef.current?.click()}
+                    disabled={!supportsFileAttachments}
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!supportsFileAttachments && (
+                <TooltipContent side="top">
+                  <p>This model does not support file attachments</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
 
           {supportsWebSearch && onWebSearchToggle && (
             <TooltipProvider>

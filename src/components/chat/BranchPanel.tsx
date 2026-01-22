@@ -17,7 +17,7 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { ModelSelector } from './ModelSelector';
 import { ResizableHandle } from '@/components/ui/resizable-handle';
-import { supportsAttachments } from '@/services/llm';
+import { supportsAttachments, getSupportedMimeTypes } from '@/services/llm';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -315,6 +315,7 @@ export function BranchPanel({
               webSearchEnabled={webSearchEnabled}
               onWebSearchToggle={onWebSearchToggle}
               supportsWebSearch={branch.model?.supportsWebSearch}
+              supportedMimeTypes={branch.model ? getSupportedMimeTypes(branch.model.provider) : undefined}
               supportsFileAttachments={branch.model ? supportsAttachments(branch.model.provider) : true}
             />
           </div>
