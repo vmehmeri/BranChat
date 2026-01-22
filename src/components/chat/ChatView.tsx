@@ -18,6 +18,7 @@ const BRANCH_MAX_WIDTH = 1200;
 const BRANCH_DEFAULT_WIDTH = 400;
 const MAIN_CHAT_MIN_WIDTH = 300;
 const MAIN_CHAT_COLLAPSE_THRESHOLD = 350;
+const COLLAPSE_HYSTERESIS = 50; // Require 50px more to expand than to collapse
 
 // Throttle interval for streaming updates (ms)
 const STREAM_UPDATE_THROTTLE_MS = 50;
@@ -57,6 +58,10 @@ export function ChatView() {
   const isLoading = loadingConversationId === activeConversation?.id;
   const [branchWidths, setBranchWidths] = useState<Record<string, number>>({});
   const [isMainChatCollapsed, setIsMainChatCollapsed] = useState(false);
+  // Ref to track collapse state during rapid drag events (avoids stale closure)
+  const isMainChatCollapsedRef = useRef(isMainChatCollapsed);
+  // Ref to the main container for measuring actual available width (excludes sidebar)
+  const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
@@ -177,73 +182,152 @@ export function ChatView() {
     return branchWidths[branchId] ?? BRANCH_DEFAULT_WIDTH;
   }, [branchWidths]);
 
-  // Cache viewport width to avoid repeated DOM reads during drag
-  const viewportWidthRef = useRef(window.innerWidth);
-  
-  // Update viewport width cache on window resize
+  // Keep collapse state ref in sync with state (for drag callbacks)
   useEffect(() => {
-    const handleResize = () => {
-      viewportWidthRef.current = window.innerWidth;
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    isMainChatCollapsedRef.current = isMainChatCollapsed;
+  }, [isMainChatCollapsed]);
+
+  // Keep active branch IDs in a ref for drag callbacks
+  const activeBranchIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    activeBranchIdsRef.current = new Set(activeBranches.map(b => b.id));
+
+    // Also clean up branchWidths for closed branches
+    setBranchWidths(prev => {
+      const staleIds = Object.keys(prev).filter(id => !activeBranchIdsRef.current.has(id));
+      if (staleIds.length === 0) return prev;
+
+      const newWidths = { ...prev };
+      staleIds.forEach(id => delete newWidths[id]);
+      return newWidths;
+    });
+  }, [activeBranches]);
 
   // Handle branch resize with ultra-smooth updates
   const handleBranchResize = useCallback((branchId: string, delta: number) => {
+    // Get actual container width (excludes sidebar) - fall back to window if ref not ready
+    const containerWidth = containerRef.current?.clientWidth ?? window.innerWidth;
+    const collapsedMainWidth = 50; // Width of collapsed main chat sidebar
+    const isCollapsed = isMainChatCollapsedRef.current;
+
+    // When collapsed and user drags right (delta < 0 = shrinking branch), expand immediately
+    if (isCollapsed && delta < 0) {
+      setIsMainChatCollapsed(false);
+      // Scale branches to make room for main chat
+      setBranchWidths(prev => {
+        const targetMainWidth = MAIN_CHAT_MIN_WIDTH + 100;
+        const availableForBranches = containerWidth - targetMainWidth;
+
+        // Only consider active branches
+        const activeBranchIds = Array.from(activeBranchIdsRef.current);
+        const totalCurrent = activeBranchIds.reduce((sum, id) => sum + (prev[id] ?? BRANCH_DEFAULT_WIDTH), 0);
+
+        if (totalCurrent > availableForBranches && totalCurrent > 0) {
+          const scale = availableForBranches / totalCurrent;
+          const newWidths: Record<string, number> = {};
+          activeBranchIds.forEach(id => {
+            newWidths[id] = Math.max(BRANCH_MIN_WIDTH, Math.floor((prev[id] ?? BRANCH_DEFAULT_WIDTH) * scale));
+          });
+          return newWidths;
+        }
+        return prev;
+      });
+      return;
+    }
+
     setBranchWidths(prev => {
       const currentWidth = prev[branchId] ?? BRANCH_DEFAULT_WIDTH;
-      const newWidth = Math.min(BRANCH_MAX_WIDTH, Math.max(BRANCH_MIN_WIDTH, currentWidth + delta));
-      
+
+      // Only consider active branches for width calculations
+      const activeBranchIds = Array.from(activeBranchIdsRef.current);
+      const otherActiveBranchIds = activeBranchIds.filter(id => id !== branchId);
+      const otherBranchesWidth = otherActiveBranchIds.reduce(
+        (sum, id) => sum + (prev[id] ?? BRANCH_DEFAULT_WIDTH), 0
+      );
+
+      // Calculate max allowed width for this branch based on current collapse state
+      const minMainSpace = isCollapsed ? collapsedMainWidth : MAIN_CHAT_MIN_WIDTH;
+      const maxAllowedWidth = containerWidth - otherBranchesWidth - minMainSpace;
+
+      // Apply all constraints: min, max, and viewport limit
+      const newWidth = Math.min(
+        BRANCH_MAX_WIDTH,
+        maxAllowedWidth,
+        Math.max(BRANCH_MIN_WIDTH, currentWidth + delta)
+      );
+
       // Only update if width actually changed significantly
-      if (Math.abs(newWidth - currentWidth) < 0.5) {
+      if (Math.abs(newWidth - currentWidth) < 1) {
         return prev;
       }
-      
-      // Simple, fast update - defer collapse logic to next tick
-      const newState = { ...prev, [branchId]: newWidth };
-      
-      // Check collapse logic asynchronously to not block drag
-      setTimeout(() => {
-        const otherBranches = Object.keys(newState).filter(id => id !== branchId);
-        const otherBranchesWidth = otherBranches.reduce((sum, id) => sum + (newState[id] ?? BRANCH_DEFAULT_WIDTH), 0);
-        const totalBranchWidth = otherBranchesWidth + newWidth;
-        const availableMainWidth = viewportWidthRef.current - totalBranchWidth;
-        
-        // Auto-collapse main chat if it gets too small
-        if (availableMainWidth < MAIN_CHAT_COLLAPSE_THRESHOLD && !isMainChatCollapsed) {
-          setIsMainChatCollapsed(true);
-        } else if (availableMainWidth >= MAIN_CHAT_MIN_WIDTH && isMainChatCollapsed) {
-          setIsMainChatCollapsed(false);
+
+      // Calculate new layout state
+      const totalBranchWidth = otherBranchesWidth + newWidth;
+      const availableMainWidth = containerWidth - totalBranchWidth;
+
+      // Determine if we need to collapse (only when not already collapsed)
+      const shouldCollapse = availableMainWidth < MAIN_CHAT_COLLAPSE_THRESHOLD && !isCollapsed;
+
+      // Create the new state object (only for active branches)
+      const newState: Record<string, number> = {};
+      activeBranchIds.forEach(id => {
+        newState[id] = id === branchId ? newWidth : (prev[id] ?? BRANCH_DEFAULT_WIDTH);
+      });
+
+      // If we need to collapse main chat, distribute available space among branches
+      if (shouldCollapse) {
+        const availableForBranches = containerWidth - collapsedMainWidth;
+
+        if (activeBranchIds.length === 1) {
+          // Single branch: give it all available space (clamped to max)
+          newState[branchId] = Math.min(BRANCH_MAX_WIDTH, Math.max(BRANCH_MIN_WIDTH, availableForBranches));
+        } else {
+          // Multiple branches: scale proportionally to fit
+          const totalCurrent = activeBranchIds.reduce((sum, id) => sum + (newState[id] ?? BRANCH_DEFAULT_WIDTH), 0);
+          const scale = Math.min(1, availableForBranches / totalCurrent);
+
+          activeBranchIds.forEach(id => {
+            const currentBranchWidth = newState[id] ?? BRANCH_DEFAULT_WIDTH;
+            newState[id] = Math.max(BRANCH_MIN_WIDTH, Math.floor(currentBranchWidth * scale));
+          });
         }
-      }, 0);
-      
+        setIsMainChatCollapsed(true);
+      }
+
       return newState;
     });
-  }, [isMainChatCollapsed]);
+  }, []);
 
   // Handle expanding main chat
   const handleExpandMainChat = useCallback(() => {
     setIsMainChatCollapsed(false);
     // Adjust branch widths to make room for main chat
     setBranchWidths(prev => {
-      const viewportWidth = window.innerWidth;
+      // Use actual container width (excludes sidebar)
+      const containerWidth = containerRef.current?.clientWidth ?? window.innerWidth;
       const targetMainWidth = 600; // Give main chat a reasonable width
-      const availableForBranches = viewportWidth - targetMainWidth;
-      const totalCurrentWidth = Object.values(prev).reduce((sum, width) => sum + width, 0);
-      
-      if (totalCurrentWidth > availableForBranches) {
+      const availableForBranches = containerWidth - targetMainWidth;
+
+      // Only consider active branches
+      const activeBranchIds = Array.from(activeBranchIdsRef.current);
+      const totalCurrentWidth = activeBranchIds.reduce((sum, id) => sum + (prev[id] ?? BRANCH_DEFAULT_WIDTH), 0);
+
+      if (totalCurrentWidth > availableForBranches && totalCurrentWidth > 0) {
         // Scale down all branches proportionally
         const scale = availableForBranches / totalCurrentWidth;
         const newWidths: Record<string, number> = {};
-        Object.entries(prev).forEach(([id, width]) => {
-          newWidths[id] = Math.max(BRANCH_MIN_WIDTH, width * scale);
+        activeBranchIds.forEach(id => {
+          newWidths[id] = Math.max(BRANCH_MIN_WIDTH, Math.floor((prev[id] ?? BRANCH_DEFAULT_WIDTH) * scale));
         });
         return newWidths;
       }
-      
-      return prev;
+
+      // Return only active branch widths
+      const newWidths: Record<string, number> = {};
+      activeBranchIds.forEach(id => {
+        newWidths[id] = prev[id] ?? BRANCH_DEFAULT_WIDTH;
+      });
+      return newWidths;
     });
   }, []);
 
@@ -559,7 +643,7 @@ export function ChatView() {
   }
 
   return (
-    <div className="flex h-full">
+    <div ref={containerRef} className="flex h-full">
       {/* Main conversation */}
       {isMainChatCollapsed ? (
         <div className="w-12 border-r flex flex-col items-center py-4 bg-muted/30">
