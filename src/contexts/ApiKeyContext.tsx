@@ -19,6 +19,7 @@ export function ApiKeyProvider({ children }: { children: React.ReactNode }) {
     anthropic: null,
     google: null,
     xai: null,
+    openrouter: null,
   });
   const [isLoading, setIsLoading] = useState(true);
 

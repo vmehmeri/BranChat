@@ -6,6 +6,7 @@ import {
   AnthropicProvider,
   GoogleProvider,
   XAIProvider,
+  OpenRouterProvider,
 } from './providers';
 
 /**
@@ -16,6 +17,7 @@ const PROVIDER_NAMES: Record<ModelProvider, string> = {
   anthropic: 'Anthropic',
   google: 'Google',
   xai: 'xAI',
+  openrouter: 'OpenRouter',
 };
 
 /**
@@ -26,6 +28,7 @@ const providerFactories: Record<ModelProvider, LLMProviderFactory> = {
   anthropic: (config) => new AnthropicProvider(config),
   google: (config) => new GoogleProvider(config),
   xai: (config) => new XAIProvider(config),
+  openrouter: (config) => new OpenRouterProvider(config),
 };
 
 /**

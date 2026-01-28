@@ -25,6 +25,7 @@ const providerLabels: Record<ModelProvider, string> = {
   anthropic: 'Anthropic',
   google: 'Google',
   xai: 'xAI',
+  openrouter: 'OpenRouter',
 };
 
 interface ApiKeyInputProps {

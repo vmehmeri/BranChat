@@ -358,12 +358,15 @@ export function ChatView() {
     // but let the streaming continue in the background for the old conversation
     // The abort is handled in handleSend when a new request is made
     return () => {
-      // Cleanup on unmount
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      // Cleanup on unmount - capture refs before cleanup
+      const mainAbortController = abortControllerRef.current;
+      const branchAbortController = branchAbortControllerRef.current;
+      
+      if (mainAbortController) {
+        mainAbortController.abort();
       }
-      if (branchAbortControllerRef.current) {
-        branchAbortControllerRef.current.abort();
+      if (branchAbortController) {
+        branchAbortController.abort();
       }
     };
   }, []);

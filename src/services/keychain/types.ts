@@ -5,15 +5,16 @@ export interface KeychainService {
   getAllApiKeys(): Promise<Record<string, string | null>>;
 }
 
-export type ApiKeyProvider = 'openai' | 'anthropic' | 'google' | 'xai';
+export type ApiKeyProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'openrouter';
 
-export const API_KEY_PROVIDERS: ApiKeyProvider[] = ['openai', 'anthropic', 'google', 'xai'];
+export const API_KEY_PROVIDERS: ApiKeyProvider[] = ['openai', 'anthropic', 'google', 'xai', 'openrouter'];
 
 export const API_KEY_LABELS: Record<ApiKeyProvider, string> = {
   openai: 'OpenAI',
   anthropic: 'Anthropic',
   google: 'Google AI',
   xai: 'xAI',
+  openrouter: 'OpenRouter',
 };
 
 export const API_KEY_PLACEHOLDERS: Record<ApiKeyProvider, string> = {
@@ -21,4 +22,5 @@ export const API_KEY_PLACEHOLDERS: Record<ApiKeyProvider, string> = {
   anthropic: 'sk-ant-...',
   google: 'AIza...',
   xai: 'xai-...',
+  openrouter: 'sk-or-v1-...',
 };

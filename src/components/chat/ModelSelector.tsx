@@ -30,6 +30,7 @@ const providerLabels: Record<ModelProvider, string> = {
   anthropic: 'Anthropic',
   google: 'Google',
   xai: 'xAI',
+  openrouter: 'OpenRouter',
 };
 
 // OpenAI logo icon
@@ -63,6 +64,13 @@ const XAIIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// OpenRouter logo icon
+const OpenRouterIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4zm0 2.18l6 3v5.82c0 4.83-3.13 9.37-6 10.8-2.87-1.43-6-5.97-6-10.8V7.18l6-3zM12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3z" />
+  </svg>
+);
+
 export const ProviderIcon = ({ provider, className }: { provider: ModelProvider; className?: string }) => {
   switch (provider) {
     case 'openai':
@@ -73,6 +81,8 @@ export const ProviderIcon = ({ provider, className }: { provider: ModelProvider;
       return <GoogleIcon className={className} />;
     case 'xai':
       return <XAIIcon className={className} />;
+    case 'openrouter':
+      return <OpenRouterIcon className={className} />;
   }
 };
 

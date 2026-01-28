@@ -123,13 +123,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
         // Flush any pending saves immediately on unmount
-        for (const id of modifiedConvIds.current) {
+        const currentModifiedIds = Array.from(modifiedConvIds.current);
+        const currentModifiedSet = modifiedConvIds.current;
+        for (const id of currentModifiedIds) {
           const conv = conversations.find(c => c.id === id);
           if (conv) {
             saveConversation(conv);
           }
         }
-        modifiedConvIds.current.clear();
+        currentModifiedSet.clear();
       }
     };
   }, [conversations]);

@@ -1,4 +1,4 @@
-export type ModelProvider = 'openai' | 'anthropic' | 'google' | 'xai';
+export type ModelProvider = 'openai' | 'anthropic' | 'google' | 'xai' | 'openrouter';
 export type ModelType = 'chat' | 'image';
 
 export interface Model {
@@ -63,6 +63,9 @@ export const MODELS: Model[] = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3.0 Flash', provider: 'google', description: 'Fast and lightweight', supportsWebSearch: true },
   { id: 'grok-4-1-fast', name: 'Grok 4.1 Fast', provider: 'xai', description: 'Fast and efficient xAI model', supportsWebSearch: true },
   { id: 'grok-4-1-fast-reasoning', name: 'Grok 4.1 Fast Reasoning', provider: 'xai', description: 'Fast with reasoning capabilities', supportsWebSearch: true },
+  { id: 'z-ai/glm-4.7', name: 'GLM-4.7', provider: 'openrouter', description: 'Zhipu AI language model', supportsWebSearch: true },
+  { id: 'moonshotai/kimi-k2-thinking', name: 'Kimi K2 Thinking', provider: 'openrouter', description: 'Moonshot AI reasoning model', supportsWebSearch: true },
+  { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'openrouter', description: 'DeepSeek advanced model', supportsWebSearch: true },
   // Image generation models - commented out for v1
   // { id: 'gpt-image-1.5', name: 'GPT Image 1.5', provider: 'openai', description: 'Generate images with GPT', type: 'image' },
 ];

@@ -15,7 +15,7 @@ const SIDEBAR_WIDTH_KEY = 'branch-chat-sidebar-width';
 const LG_BREAKPOINT = 1024;
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
   const isFullscreen = useFullscreen();
   const [sidebarWidth, setSidebarWidth] = useState(() => {

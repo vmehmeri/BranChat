@@ -23,6 +23,7 @@ export interface ApiKeys {
   anthropic?: string | null;
   google?: string | null;
   xai?: string | null;
+  openrouter?: string | null;
 }
 
 /**
