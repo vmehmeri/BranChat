@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-28
+
+### Added
+- **OpenRouter Integration** - Added support for open models from OpenRouter provider
+- **Branch Chat History Copy** - Copy entire branch conversation history to clipboard
+- **Enhanced Branch Panel** - Increased maximum width to 1200px for better workspace utilization
+
+### Improved
+- **Branch Panel Dragging** - Implemented smooth continuous dragging with auto-collapse of main chat area
+- **Performance Optimizations** - Ultra-smooth branch panel dragging experience
+- **Title Editing** - Refactored conversation title editing from click to dropdown menu with click-outside cancel
+
+### Fixed
+- Several bug fixes including:
+  - File attachment compatibility for Grok models with proper tooltip hints
+  - Branch chat area dragging behavior
+  - Exponential backoff retries for empty responses and network errors
+  - Electron app spacing and header area styling
+  - Dependency updates for react-router
+
 ## [1.0.0] - 2025-01-08
 
 Initial release of BranChat.
